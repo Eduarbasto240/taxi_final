@@ -1,0 +1,42 @@
+name: Build APK
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          
+      - name: Create missing Android files
+        run: |
+          mkdir -p android/app/src/main/res/values
+          echo '<?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="app_name">Taxi Final</string>
+          </resources>' > android/app/src/main/res/values/strings.xml
+          
+      - name: Clean and get packages
+        run: |
+          flutter clean
+          flutter pub get
+          
+      - name: Build APK
+        run: flutter build apk --debug
+        
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: taxi-app-final
+          path: build/app/outputs/flutter-apk/app-debug.apk
